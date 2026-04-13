@@ -1,3 +1,3 @@
-./.env
-./miroshark
-./venv
+.env
+miroshark/
+venv/
