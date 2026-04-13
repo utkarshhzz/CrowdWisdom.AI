@@ -1,0 +1,6 @@
+python-dotenv
+requests
+pyairtable
+apify-client
+elevenlabs
+openai
