@@ -32,6 +32,7 @@ class DebtCollectionManager:
         self.llm = OpenAI(
             api_key=openrouter_key,
             base_url="https://openrouter.ai/api/v1",
+            timeout=30.0  # ADDED: Prevents the API from hanging infinitely
         )
 
         # We will use the models you provided that are currently active!
@@ -63,7 +64,7 @@ If the dialer tool succeeds, respond with exactly 'CALLED'. If you decided to sk
         name = debtor_data.get('name')
         logger.info(f"Asking Hermes to evaluate call for: {name}")
         
-        learning_context = get_learning_context(name)
+        learning_context = get_learning_context(name if name else "Unknown")
         
         # We construct the user prompt
         prompt = f"""
@@ -120,34 +121,34 @@ If the dialer tool succeeds, respond with exactly 'CALLED'. If you decided to sk
         try:
             response = self.llm.chat.completions.create(
                 model=self.model,
-                messages=messages,
-                tools=tools,
+                messages=messages, # type: ignore
+                tools=tools, # type: ignore
                 tool_choice="auto",
                 extra_body={"models": self.fallbacks}
             )
             
             # Keep looping as long as Hermes wants to use tools (e.g. check time -> then trigger voice)
-            while response.choices[0].message.tool_calls:
+            while getattr(response.choices[0].message, "tool_calls", None):
                 message = response.choices[0].message
-                messages.append(message)
+                messages.append(message.model_dump()) # type: ignore
                 
-                for tool_call in message.tool_calls:
+                for tool_call in message.tool_calls: # type: ignore
                     args = json.loads(tool_call.function.arguments)
                     logger.info(f"Hermes invoked tool [{tool_call.function.name}] with: {args}")
                     
                     if tool_call.function.name == "check_if_good_time_to_call":
                         result = check_if_good_time_to_call(
-                            timezone_str=args.get("timezone_str"),
+                            timezone_str=args.get("timezone_str", "America/New_York"),
                             country_code=args.get("country_code", "US")
                         )
                     elif tool_call.function.name == "trigger_voice_collection_call":
                         # This triggers our ElevenLabs Voice Agent!
                         result = trigger_voice_collection_call(
-                            name=args.get("name"),
-                            company_name=args.get("company_name"),
-                            debt_amount=args.get("debt_amount"),
-                            product=args.get("product"),
-                            due_date=args.get("due_date")
+                            name=args.get("name", str(name)),
+                            company_name=args.get("company_name", debtor_data.get('company_name', 'Unknown')),
+                            debt_amount=args.get("debt_amount", debtor_data.get('debt_amount', 0)),
+                            product=args.get("product", debtor_data.get('product', 'Unknown')),
+                            due_date=args.get("due_date", debtor_data.get('due_date', 'Unknown'))
                         )
                     else:
                         result = f"Error: Tool {tool_call.function.name} not found."
@@ -163,13 +164,14 @@ If the dialer tool succeeds, respond with exactly 'CALLED'. If you decided to sk
                 # Ask Hermes what to do next based on the tool results
                 response = self.llm.chat.completions.create(
                     model=self.model,
-                    messages=messages,
-                    tools=tools,
+                    messages=messages, # type: ignore
+                    tools=tools, # type: ignore
                     extra_body={"models": self.fallbacks}
                 )
 
             # Final analysis by the LLM
-            decision = response.choices[0].message.content.strip().upper()
+            decision = getattr(response.choices[0].message, "content", "")
+            decision = decision.strip().upper() if decision else "SKIPPED"
             return "CALLED" if "CALLED" in decision else "SKIPPED"
                 
         except Exception as e:
@@ -188,5 +190,5 @@ if __name__ == "__main__":
     manager = DebtCollectionManager()
     
     print("\n--- Testing Hermes Manager Reasoning ---")
-    should_call = manager.decide_if_should_call(sample_debtor)
-    print(f"\nFinal Action: {'Trigger Voice Agent' if should_call else 'Skip Call for Now'}")
+    should_call = manager.process_debtor(sample_debtor)
+    print(f"\nFinal Action: {'Trigger Voice Agent' if should_call == 'CALLED' else 'Skip Call for Now'}")

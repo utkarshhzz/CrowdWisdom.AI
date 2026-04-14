@@ -8,3 +8,4 @@ pytz
 hermes-agent
 elevenlabs[conversational_ai]
 pyaudio
+Flask

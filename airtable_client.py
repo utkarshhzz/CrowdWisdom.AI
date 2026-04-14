@@ -36,7 +36,7 @@ class AirtableClient:
         
     def update_call_status(self,record_id:str,status:str) -> bool:
         try:
-            self.table.update(record_id,{'call_status':status})
+            self.table.update(record_id,{'Call-Status':status})
             logger.info(f"Updated call status for record {record_id} to {status}.")
             return True
         except Exception as e:

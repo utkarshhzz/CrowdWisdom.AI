@@ -1,3 +1,7 @@
 .env
 miroshark/
 venv/
+LOCAL_GUIDE.md
+holidays_cache.json
+call_history.json
+__pycache__/
