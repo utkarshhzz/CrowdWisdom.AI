@@ -28,11 +28,16 @@ class DebtCollectionManager:
         if not openrouter_key:
             raise ValueError("OPENROUTER_API_KEY is missing in .env file.")
 
+        import httpx
         # 1. Initialize the LLM Engine (Using OpenRouter to access free models)
         self.llm = OpenAI(
             api_key=openrouter_key,
             base_url="https://openrouter.ai/api/v1",
-            timeout=30.0  # ADDED: Prevents the API from hanging infinitely
+            timeout=120.0,
+            max_retries=3,
+            http_client=httpx.Client(
+                limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
+            )
         )
 
         # We will use the models you provided that are currently active!
@@ -108,7 +113,7 @@ If the dialer tool succeeds, respond with exactly 'CALLED'. If you decided to sk
                         "product": {"type": "string"},
                         "due_date": {"type": "string"}
                     },
-                    "required": ["name", "company_name", "debt_amount", "product", "due_date"]
+                    "required": ["name", "debt_amount"]
                 }
             }
         }]
@@ -172,7 +177,20 @@ If the dialer tool succeeds, respond with exactly 'CALLED'. If you decided to sk
             # Final analysis by the LLM
             decision = getattr(response.choices[0].message, "content", "")
             decision = decision.strip().upper() if decision else "SKIPPED"
-            return "CALLED" if "CALLED" in decision else "SKIPPED"
+            
+            if "CALLED" in decision:
+                # Force the Voice Client if the LLM said "CALLED" but skipped the structured tool call
+                logger.info(f"Decision is CALLED. Executing voice trigger locally.")
+                trigger_voice_collection_call(
+                    name=str(name),
+                    company_name=debtor_data.get('company_name', 'Unknown'),
+                    debt_amount=float(debtor_data.get('debt_amount', 0)),
+                    product=debtor_data.get('product', 'Unknown'),
+                    due_date=debtor_data.get('due_date', 'Unknown')
+                )
+                return "CALLED"
+            
+            return "SKIPPED"
                 
         except Exception as e:
             logger.error(f"Hermes Agent encountered an error: {e}")
