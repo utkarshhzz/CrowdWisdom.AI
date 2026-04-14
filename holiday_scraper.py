@@ -53,7 +53,7 @@ class HolidayScraper:
                 if "date" in item:
                     holidays.append(item["date"])
             logger.info(f"Sucessfully scraped {len(holidays)} holidays for {country_code} in {year}.")
-            self.save_to_cache(country_code,year,holidays)
+            self._save_to_cache(country_code,year,holidays)
             
             return holidays
         except Exception as e:
