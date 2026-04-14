@@ -33,6 +33,11 @@ def trigger_voice_collection_call(name: str, company_name: str, debt_amount: flo
     }
     
     try:
+        # VERCEL SAFEGUARD: Serverless functions do not have microphones/speakers!
+        if os.getenv("VERCEL") == "1":
+            logger.info(f"[Vercel Mock] Simulated Voice Agent dial for {name}.")
+            return "SUCCESS: The call was simulated in the cloud. Awaiting call outcome data."
+            
         voice_client = VoiceAgentClient()
         success = voice_client.start_collection_call(debtor_data)
         
