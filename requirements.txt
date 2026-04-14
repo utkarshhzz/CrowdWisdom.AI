@@ -5,3 +5,4 @@ apify-client
 elevenlabs
 openai
 pytz
+hermes-agent
