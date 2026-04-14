@@ -31,12 +31,12 @@ python api/index.py
 Then visit `http://127.0.0.1:5000`
 
 ## Step 4: Submission Components
-As per the evaluation criteria:
-- **GitHub Repository**: Pushed.
-- **Apify Tokens Used**: Implemented in `holiday_scraper.py` using `apify-client` and `apify/cheerio-scraper`.
-- **ElevenLabs Agent Bot Link**: You can find your specific agent share link in the ElevenLabs dashboard under your Agent's "Deploy" tab.
+As requested for the final evaluation, here are the required components:
+- **GitHub Repository**: (Insert your GitHub link here)
+- **APIFY tokens used**: `apify/cheerio-scraper` (Free tier)
+- **11labs agent bot link**: (Insert your ElevenLabs Shareable Agent Link here)
 
-## Architecture
+---
 - **Airtable Client:** Fetches data and updates statuses.
 - **Apify Scraper:** Pre-caches US holidays to ensure no calls occur on holidays.
 - **Hermes Manager Agent:** Custom AI orchestration loop using OpenAI's tool-calling format over OpenRouter. Evaluates conditions and acts.
