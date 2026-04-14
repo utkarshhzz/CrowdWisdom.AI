@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from venv import logger
 import pytz
 import sys
 import os
@@ -8,7 +7,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from holiday_scraper import HolidayScraper
 
-loggger=logging.getLogger(__name__)
+logger=logging.getLogger(__name__)
 
 def check_if_good_time_to_call(timezone_str:str,country_code:str='US',override_time:datetime=None) -> bool:
     """
@@ -28,8 +27,8 @@ def check_if_good_time_to_call(timezone_str:str,country_code:str='US',override_t
         tz=pytz.timezone(timezone_str)
         # use override time if testing
         local_time=override_time if override_time else datetime.now(tz)
-        local_date_str=local_time.strftime("%F-%m-%d")
-        logger.info("Checking schedule for timezone: {timezone_str}. Local time is: {local_time}")
+        local_date_str=local_time.strftime("%Y-%m-%d")
+        logger.info(f"Checking schedule for timezone: {timezone_str}. Local time is: {local_time}")
         
         
         # chekcing if weekend or not

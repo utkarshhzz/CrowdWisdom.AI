@@ -6,3 +6,5 @@ elevenlabs
 openai
 pytz
 hermes-agent
+elevenlabs[conversational_ai]
+pyaudio

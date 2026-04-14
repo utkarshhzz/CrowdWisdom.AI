@@ -2,17 +2,14 @@ import os
 import json
 import logging
 from dotenv import load_dotenv
+
+# We are using the standard OpenAI client because it natively supports the standard 
+# "tool calling" protocol that Mistral and Hermes models expect via OpenRouter.
 from openai import OpenAI
 
-# We adapt MiroShark's core functionality for our use case.
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../miroshark/backend/app')))
-
-try:
-    from utils.llm_client import LLMClient
-except ImportError:
-    logger.warning("Could not load MiroShark LLMClient, falling back to direct OpenAI integration.")
-    from openai import OpenAI as LLMClient
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from skills.scheduling_skill import check_if_good_time_to_call
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -20,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class DebtCollectionManager:
     """
-    The main Hermes/MiroShark Agent that coordinates the debt collection process.
+    The main Hermes Agent that coordinates the debt collection process.
     """
     def __init__(self):
         load_dotenv(override=True)
@@ -29,13 +26,21 @@ class DebtCollectionManager:
         if not openrouter_key:
             raise ValueError("OPENROUTER_API_KEY is missing in .env file.")
 
-        # 1. Initialize the LLM Engine (Using OpenRouter to access free Mistral models)
+        # 1. Initialize the LLM Engine (Using OpenRouter to access free models)
         self.llm = OpenAI(
             api_key=openrouter_key,
             base_url="https://openrouter.ai/api/v1",
         )
 
-        self.model = "mistralai/mistral-7b-instruct:free"
+        # We will use the models you provided that are currently active!
+        self.model = "nvidia/nemotron-3-super-120b-a12b:free"
+        
+        # We tell OpenRouter to automatically fall back to other available models if the first is busy
+        self.fallbacks = [
+            "minimax/minimax-m2.5:free",
+            "nvidia/nemotron-3-nano-30b-a3b:free",
+            "google/gemma-4-26b-a4b-it:free"
+        ]
 
         # 3. Create the System Prompt
         self.system_prompt = """You are the AI Manager for a debt collection agency. 
@@ -89,11 +94,15 @@ Do not guess the time. Use the tool. If the tool returns True, respond with exac
         
         try:
             # Step 1: Send the prompt and the tool to the LLM
+            # We use OpenRouter's native "models" array in extra_body so it automatically falls back!
             response = self.llm.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 tools=tools,
-                tool_choice="auto"
+                tool_choice="auto",
+                extra_body={
+                    "models": self.fallbacks
+                }
             )
             
             message = response.choices[0].message
@@ -124,7 +133,8 @@ Do not guess the time. Use the tool. If the tool returns True, respond with exac
                         # Hermes looks at the True/False and gives us the final YES or NO
                         second_response = self.llm.chat.completions.create(
                             model=self.model,
-                            messages=messages
+                            messages=messages,
+                            extra_body={ "models": self.fallbacks }
                         )
                         decision = second_response.choices[0].message.content.strip().upper()
             else:
