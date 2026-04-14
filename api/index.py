@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify, render_template_string
 import os
 import sys
 
-# Tell the app it is running on Vercel so we avoid physical audio library crashes
-os.environ["VERCEL"] = "1"
+# Tell the app it is running on Vercel ONLY if it actually is on Vercel. 
+# We remove the hardcoded os.environ["VERCEL"] = "1" so that local testing uses real speakers.
+if not os.environ.get("VERCEL"):
+    print("RUNNING IN LOCAL MODE: ElevenLabs Voice Streams are Active!")
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)

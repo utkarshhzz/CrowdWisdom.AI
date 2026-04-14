@@ -24,6 +24,17 @@ Start the orchestration loop by running:
 ```bash
 python main.py
 ```
+Or start the gorgeous web evaluation Sandbox:
+```bash
+python api/index.py
+```
+Then visit `http://127.0.0.1:5000`
+
+## Step 4: Submission Components
+As per the evaluation criteria:
+- **GitHub Repository**: Pushed.
+- **Apify Tokens Used**: Implemented in `holiday_scraper.py` using `apify-client` and `apify/cheerio-scraper`.
+- **ElevenLabs Agent Bot Link**: You can find your specific agent share link in the ElevenLabs dashboard under your Agent's "Deploy" tab.
 
 ## Architecture
 - **Airtable Client:** Fetches data and updates statuses.

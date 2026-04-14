@@ -5,4 +5,6 @@ apify-client
 elevenlabs
 openai
 pytz
+pyaudio
 Flask
+elevenlabs[conversational_ai]
