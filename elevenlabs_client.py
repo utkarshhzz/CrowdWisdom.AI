@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 # We use the official ElevenLabs SDK for conversational AI 
 from elevenlabs.client import ElevenLabs
-from elevenlabs.conversational_ai.conversation import Conversation
+from elevenlabs.conversational_ai.conversation import Conversation, ConversationInitiationData
 from elevenlabs.conversational_ai.default_audio_interface import DefaultAudioInterface
 
 # Set up logging
@@ -46,24 +46,30 @@ class VoiceAgentClient:
         }
 
         try:
-            # 3. Create the Conversation Session
+            # 3. Create the Conversation Session Initiation Data with our dynamic variables!
+            initiation_data = ConversationInitiationData(
+                dynamic_variables=dynamic_vars
+            )
+
+            # 4. Create the Conversation Session
+            # requires_auth=False is needed because some new API keys don't have ConvAI permissions by default.
+            # Assuming the agent is "Public" in the dashboard, we don't need strict workspace authentication.
             conversation = Conversation(
                 client=self.client,
                 agent_id=self.agent_id,
-                requires_auth=True,
+                requires_auth=False,
                 audio_interface=DefaultAudioInterface(),
+                config=initiation_data,
                 callback_agent_response=lambda response: logger.info(f"Agent says: {response}"),
                 callback_user_transcript=lambda transcript: logger.info(f"User says: {transcript}")
             )
 
-            # 4. Start the session and immediately pass our dynamic data
+            # 5. Start the session and immediately pass our dynamic data
             logger.info("Starting live call session... (Speak into your microphone!)")
             logger.info("Press Ctrl+C in the terminal to hang up the call.")
 
             # Connects to the ElevenLabs websocket server
-            conversation.start_session(
-                conversation_config_override={"agent": {"prompt": {"prompt_variables": dynamic_vars}}}
-            )
+            conversation.start_session()
             
             # Keeps the Python script running while you chat
             conversation.wait_for_session_end()
