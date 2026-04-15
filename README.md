@@ -2,7 +2,7 @@
 
 A sophisticated, multi-agent AI system designed to intelligently orchestrate and automate debt collection procedures using conversational AI. The project utilizes a custom LLM orchestration loop to verify suitable calling windows (respecting public holidays via web scraping and timezone validation), fetches active records from Airtable, and executes real-time conversational voice calls via ElevenLabs.
 
-## ?? Key Features
+## Key Features
 - **Conversational Voice AI**: Integrates the ElevenLabs Conversational AI Agent for dynamic, human-like phone calls and negotiations.
 - **Smart Orchestration (Hermes Manager)**: Custom autonomous loop leveraging OpenRouter (LLM) to decide precisely *when* and *whether* to initiate calls based on real-world constraints.
 - **Compliance & Scheduling Skill**: Automatically scrapes US public holidays (via Apify) and verifies working hours to strictly adhere to debt collection communication compliance.
@@ -10,7 +10,7 @@ A sophisticated, multi-agent AI system designed to intelligently orchestrate and
 - **Dynamic Database Integration**: Bidirectional Airtable integration fetches pending debtors and updates their status context post-call in real time.
 - **Vercel Ready**: Contains serverless API deployment configurations (\pi/index.py\ and \ercel.json\) to host a sandbox UI and webhooks.
 
-## ??? System Architecture
+##  System Architecture
 1. **Airtable Client**: Acts as the CMS/Database, queuing debtors with a \Call-Status\ of \pending\.
 2. **Apify Scraper**: Caches US holiday calendars to prevent non-compliant outbound calls.
 3. **Hermes Orchestrator Agent**: Analyzes debtor info, decides on action feasibility via custom tool-calling, and manages the decision loop.
@@ -19,7 +19,7 @@ A sophisticated, multi-agent AI system designed to intelligently orchestrate and
    - \oice_trigger_skill.py\: Establishes the ElevenLabs WebSocket stream to initiate the active voice agent dialogue.
 5. **Feedback Loop**: Records call outcomes in \call_history.json\ for context tracking.
 
-## ????? How to Run Locally
+##  How to Run Locally
 
 ### Prerequisites
 You need an active Python 3.9+ environment and API keys for the following services:
@@ -67,7 +67,7 @@ python api/index.py
 \\\
 Then navigate to \http://127.0.0.1:5000\ in your local browser.
 
-## ?? Deployment (Vercel)
+## Deployment (Vercel)
 This project is configured for Vercel Serverless deployment. 
 1. Ensure the Vercel CLI is installed.
 2. Run \ercel\ to link the project and deploy the frontend sandbox / API endpoints.
