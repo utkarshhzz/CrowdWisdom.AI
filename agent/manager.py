@@ -69,6 +69,18 @@ If the dialer tool succeeds, respond with exactly 'CALLED'. If you decided to sk
         name = debtor_data.get('name')
         logger.info(f"Asking Hermes to evaluate call for: {name}")
         
+        # DEMO BYPASS: If timezone is DEMO, instantly return CALLED and trigger voice call.
+        if debtor_data.get('timezone') == 'DEMO':
+            logger.info("DEMO MODE: Bypassing LLM Orchestrator to directly trigger voice agent.")
+            trigger_voice_collection_call(
+                name=str(name),
+                company_name=debtor_data.get('company_name', 'Unknown'),
+                debt_amount=float(debtor_data.get('debt_amount', 0)),
+                product=debtor_data.get('product', 'Unknown'),
+                due_date=debtor_data.get('due_date', 'Unknown')
+            )
+            return "CALLED"
+        
         learning_context = get_learning_context(name if name else "Unknown")
         
         # We construct the user prompt

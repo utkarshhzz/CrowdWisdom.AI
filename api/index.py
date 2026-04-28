@@ -130,6 +130,7 @@ HTML_TEMPLATE = """
             <div class="form-group" style="flex-direction: column;">
                 <label>Environment Timezone (Simulated Logic Test)</label>
                 <select name="timezone" style="width: 100%;">
+                    <option value="DEMO">Demo Mode (Always Call)</option>
                     <option value="Asia/Kolkata">Asia/Kolkata (Force LLM Skill Defense = False)</option>
                     <option value="America/New_York" selected>US Eastern (Attempt Logic Pass)</option>
                     <option value="Europe/London">UK Standard Time</option>
